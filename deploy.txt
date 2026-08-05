@@ -7,8 +7,9 @@ readme
 README.md
 README_en.md
 assets
-icon.png
+icons
 requirements.txt
 main_debug.py
 i18n
+pyappify
 pyappify.yml

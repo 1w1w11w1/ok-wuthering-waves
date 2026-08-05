@@ -16,13 +16,21 @@ msgid "no levitator tool in the tab wheel!"
 msgstr "¡No hay herramienta levitadora en la rueda de pestañas!"
 
 msgid "Check hotkey error! Please check if hotkey settings are correct!"
-msgstr "¡Error de tecla de acceso rápido! ¡Por favor, comprueba si la configuración de las teclas de acceso rápido es correcta!"
+msgstr ""
+"¡Error de tecla de acceso rápido! ¡Por favor, comprueba si la configuración "
+"de las teclas de acceso rápido es correcta!"
 
 msgid "Can not switch to levitator please ensure you have equipped echos!"
-msgstr "¡No se puede cambiar al levitador, por favor asegúrate de haber equipado ecos!"
+msgstr ""
+"¡No se puede cambiar al levitador, por favor asegúrate de haber equipado "
+"ecos!"
 
-msgid "(1-6) Important, Choose which level to farm, lower levels might not produce a echo"
-msgstr "(1-6) Importante, elige qué nivel farmear, los niveles más bajos podrían no producir un eco"
+msgid ""
+"(1-6) Important, Choose which level to farm, lower levels might not produce "
+"a echo"
+msgstr ""
+"(1-6) Importante, elige qué nivel farmear, los niveles más bajos podrían no "
+"producir un eco"
 
 msgid "Boss1"
 msgstr "Jefe 1"
@@ -46,10 +54,12 @@ msgid "Farm Echo in Dungeon"
 msgstr "Farmear Ecos en Mazmorra"
 
 msgid "Farm World Boss(May need to drop waypoint on Boss)"
-msgstr "Farmear Jefe del Mundo (Puede ser necesario poner un punto de ruta en el Jefe)"
+msgstr ""
+"Farmear Jefe del Mundo (Puede ser necesario poner un punto de ruta en el "
+"Jefe)"
 
-msgid "Game Hotkey Config"
-msgstr "Configuración de Teclas Rápidas del Juego"
+msgid "Game Hotkey"
+msgstr "Teclas Rápidas del Juego"
 
 msgid "In Game Hotkey for Skills"
 msgstr "Teclas Rápidas en el Juego para Habilidades"
@@ -63,8 +73,12 @@ msgstr "Tecla de Liberación"
 msgid "Auto Target"
 msgstr "Apuntar Automáticamente"
 
-msgid "Turn off to enable auto combat only when manually target enemy using middle click"
-msgstr "Desactiva para habilitar el combate automático solo al apuntar manualmente a un enemigo con el clic central"
+msgid ""
+"Turn off to enable auto combat only when manually target enemy using middle "
+"click"
+msgstr ""
+"Desactiva para habilitar el combate automático solo al apuntar manualmente a"
+" un enemigo con el clic central"
 
 msgid "Repeat Farm Count"
 msgstr "Número de Repeticiones"
@@ -192,11 +206,17 @@ msgstr "Configuración de Tarjeta Mensual"
 msgid "Monthly Card Time"
 msgstr "Hora de la Tarjeta Mensual"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
-msgstr "La hora local de tu ordenador en la que aparecerá la tarjeta mensual, hora en (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgstr ""
+"La hora local de tu ordenador en la que aparecerá la tarjeta mensual, hora "
+"en (1-24)"
 
-msgid "must be in game world and in teams, please check you game resolution is 16:9"
-msgstr "Debes estar en el mundo del juego y en equipo, por favor comprueba que la resolución de tu juego es 16:9"
+msgid ""
+"must be in game world and in teams, please check you game resolution is 16:9"
+msgstr ""
+"Debes estar en el mundo del juego y en equipo, por favor comprueba que la "
+"resolución de tu juego es 16:9"
 
 msgid "Capture Frame Count"
 msgstr "Número de Capturas de Fotogramas"
@@ -211,7 +231,9 @@ msgid "Diagnosis"
 msgstr "Diagnóstico"
 
 msgid "Diagnosis Problem, Performance Test, Run in Game World"
-msgstr "Diagnóstico de Problema, Prueba de Rendimiento, Ejecutar en el Mundo del Juego"
+msgstr ""
+"Diagnóstico de Problema, Prueba de Rendimiento, Ejecutar en el Mundo del "
+"Juego"
 
 msgid "Echo Available"
 msgstr "Eco Disponible"
@@ -240,8 +262,13 @@ msgstr "Falso"
 msgid "True"
 msgstr "Verdadero"
 
-msgid "Can't load game hotkey, please equip echos for all characters and use A-Z as hotkeys for skills, detected key:{}"
-msgstr "No se pueden cargar las teclas rápidas del juego, por favor equipa ecos a todos los personajes y usa A-Z como teclas rápidas para las habilidades, tecla detectada:{}"
+msgid ""
+"Can't load game hotkey, please equip echos for all characters and use A-Z as"
+" hotkeys for skills, detected key:{}"
+msgstr ""
+"No se pueden cargar las teclas rápidas del juego, por favor equipa ecos a "
+"todos los personajes y usa A-Z como teclas rápidas para las habilidades, "
+"tecla detectada:{}"
 
 msgid "Tool Key"
 msgstr "Tecla de Herramienta"
@@ -253,13 +280,16 @@ msgid "Can't auto combat, Please equip echos!"
 msgstr "¡No se puede combatir automáticamente, por favor equipa ecos!"
 
 msgid "Turn on to avoid interruption by monthly card when executing tasks"
-msgstr "Activa para evitar interrupciones por la tarjeta mensual al ejecutar tareas"
+msgstr ""
+"Activa para evitar interrupciones por la tarjeta mensual al ejecutar tareas"
 
 msgid "Turn on to enable auto pick echo"
 msgstr "Activa para habilitar la recogida automática de ecos"
 
 msgid "can't find gray_book_boss, make sure f2 is the hotkey for book"
-msgstr "no se puede encontrar el jefe del libro gris, asegúrate de que F2 sea la tecla rápida para el libro"
+msgstr ""
+"no se puede encontrar el jefe del libro gris, asegúrate de que F2 sea la "
+"tecla rápida para el libro"
 
 msgid "Echo Pickup Method"
 msgstr "Método de Recogida de Ecos"
@@ -312,8 +342,12 @@ msgstr "Lorelei"
 msgid "click f2 to open the book"
 msgstr "haz clic en F2 para abrir el libro"
 
-msgid "Check configs to keep, click start in game world, must be in a 16:9 screen ratio"
-msgstr "Comprueba las configuraciones a mantener, haz clic en iniciar en el mundo del juego, debe estar en una relación de pantalla de 16:9"
+msgid ""
+"Check configs to keep, click start in game world, must be in a 16:9 screen "
+"ratio"
+msgstr ""
+"Comprueba las configuraciones a mantener, haz clic en iniciar en el mundo "
+"del juego, debe estar en una relación de pantalla de 16:9"
 
 msgid "Boss"
 msgstr "Jefe"
@@ -435,11 +469,22 @@ msgstr "Fusión Automática de Datos de Eco"
 msgid "Data Merge Completed!"
 msgstr "¡Fusión de Datos Completada!"
 
-msgid "Auto combat error: Make sure you're equipping echos and turn off effect that changes the game color, (Game Gammar/Nvidia AMD Game Filter), turn off Motion Blur in game video options"
-msgstr "Error de combate automático: Asegúrate de equipar ecos y desactivar efectos que cambien el color del juego (Gamma del juego/Filtro de juego de Nvidia/AMD), desactiva el desenfoque de movimiento en las opciones de video del juego"
+msgid ""
+"Auto combat error: Make sure you're equipping echos and turn off effect that"
+" changes the game color, (Game Gammar/Nvidia AMD Game Filter), turn off "
+"Motion Blur in game video options"
+msgstr ""
+"Error de combate automático: Asegúrate de equipar ecos y desactivar efectos "
+"que cambien el color del juego (Gamma del juego/Filtro de juego de "
+"Nvidia/AMD), desactiva el desenfoque de movimiento en las opciones de video "
+"del juego"
 
-msgid "Auto combat error: Make sure to turn off effect that changes the game color, (Game Gammar/Nvidia AMD Game Filter/HDR)"
-msgstr "Error de combate automático: Asegúrate de desactivar efectos que cambien el color del juego (Gamma del juego/Filtro de juego de Nvidia/AMD/HDR)"
+msgid ""
+"Auto combat error: Make sure to turn off effect that changes the game color,"
+" (Game Gammar/Nvidia AMD Game Filter/HDR)"
+msgstr ""
+"Error de combate automático: Asegúrate de desactivar efectos que cambien el "
+"color del juego (Gamma del juego/Filtro de juego de Nvidia/AMD/HDR)"
 
 msgid "Auto Login"
 msgstr "Inicio de Sesión Automático"
@@ -460,7 +505,9 @@ msgid "Must choose at least 2 Boss to Farm"
 msgstr "Debes elegir al menos 2 Jefes para farmear"
 
 msgid "Can not auto combat because team can only have one healer at most"
-msgstr "No se puede combatir automáticamente porque el equipo solo puede tener un sanador como máximo"
+msgstr ""
+"No se puede combatir automáticamente porque el equipo solo puede tener un "
+"sanador como máximo"
 
 msgid "Daily Task"
 msgstr "Tarea Diaria"
@@ -468,11 +515,17 @@ msgstr "Tarea Diaria"
 msgid "Dreamless"
 msgstr "Sin Sueños"
 
-msgid "Farms the selected Tacet Suppression, until no stamina. Must be able to teleport (F2)."
-msgstr "Farmea la Supresión Tácita seleccionada, hasta agotar el vigor. Debes poder teletransportarte (F2)."
+msgid ""
+"Farms the selected Tacet Suppression, until no stamina. Must be able to "
+"teleport (F2)."
+msgstr ""
+"Farmea la Supresión Tácita seleccionada, hasta agotar el vigor. Debes poder "
+"teletransportarte (F2)."
 
 msgid "Login, claim monthly card, farm echo, and claim daily reward"
-msgstr "Iniciar sesión, reclamar tarjeta mensual, farmear ecos y reclamar recompensa diaria"
+msgstr ""
+"Iniciar sesión, reclamar tarjeta mensual, farmear ecos y reclamar recompensa"
+" diaria"
 
 msgid "Which to Farm"
 msgstr "Qué farmear"
@@ -502,13 +555,16 @@ msgid "Please start in game world and in team!"
 msgstr "¡Por favor, inicia en el mundo del juego y en equipo!"
 
 msgid "Can't complete daily task, may need to increase stamina manually!"
-msgstr "¡No se puede completar la tarea diaria, puede que necesites aumentar el vigor manualmente!"
+msgstr ""
+"¡No se puede completar la tarea diaria, puede que necesites aumentar el "
+"vigor manualmente!"
 
 msgid "Auto Enhance Echo"
 msgstr "Mejorar Eco Automáticamente"
 
 msgid "Auto Enhance and Tune Echo after you add EXP Material"
-msgstr "Mejorar y Sintonizar Eco automáticamente después de añadir material de EXP"
+msgstr ""
+"Mejorar y Sintonizar Eco automáticamente después de añadir material de EXP"
 
 msgid "Auto Pick Echo After Combat"
 msgstr "Recoger Eco Automáticamente Después del Combate"
@@ -516,20 +572,30 @@ msgstr "Recoger Eco Automáticamente Después del Combate"
 msgid "Farm Map with Star Path"
 msgstr "Farmear Mapa con Ruta de Estrellas"
 
-msgid "Farm world map with a marked path of stars (diamond as the starting point), start in the map screen"
-msgstr "Farmear mapa del mundo con una ruta marcada con estrellas (diamante como punto de partida), inicia en la pantalla del mapa"
+msgid ""
+"Farm world map with a marked path of stars (diamond as the starting point), "
+"start in the map screen"
+msgstr ""
+"Farmear mapa del mundo con una ruta marcada con estrellas (diamante como "
+"punto de partida), inicia en la pantalla del mapa"
 
 msgid "Stars"
 msgstr "Estrellas"
 
 msgid "Need be in the map screen and have a diamond as the starting point!"
-msgstr "¡Necesitas estar en la pantalla del mapa y tener un diamante como punto de partida!"
+msgstr ""
+"¡Necesitas estar en la pantalla del mapa y tener un diamante como punto de "
+"partida!"
 
 msgid "Need be in the map screen and have a path of at least 3 stars!"
-msgstr "¡Necesitas estar en la pantalla del mapa y tener una ruta de al menos 3 estrellas!"
+msgstr ""
+"¡Necesitas estar en la pantalla del mapa y tener una ruta de al menos 3 "
+"estrellas!"
 
 msgid "Click Start after Entering Dungeon or Teleporting to The Boss"
-msgstr "Haz clic en Iniciar después de Entrar a la Mazmorra o Teletransportarte al Jefe"
+msgstr ""
+"Haz clic en Iniciar después de Entrar a la Mazmorra o Teletransportarte al "
+"Jefe"
 
 msgid "Farm 4C Echo in Dungeon/World"
 msgstr "Farmear Eco 4C en Mazmorra/Mundo"
@@ -537,14 +603,14 @@ msgstr "Farmear Eco 4C en Mazmorra/Mundo"
 msgid "Combat Wait Time"
 msgstr "Tiempo de Espera de Combate (seg)"
 
-msgid "Wait time before each combat(seconds), set 5 if farming Sentry Construct"
-msgstr "Tiempo de espera antes de cada combate (segundos), establece 5 si farmeas Constructo Centinela"
-
 msgid "Simulation Challenge"
 msgstr "Desafío de Simulación"
 
-msgid "Farms the selected Simulation Challenge. Must be able to teleport (F2)."
-msgstr "Farmea el Desafío de Simulación seleccionado. Debes poder teletransportarte (F2)."
+msgid ""
+"Farms the selected Simulation Challenge. Must be able to teleport (F2)."
+msgstr ""
+"Farmea el Desafío de Simulación seleccionado. Debes poder teletransportarte "
+"(F2)."
 
 msgid "Material Selection"
 msgstr "Selección de Material"
@@ -565,7 +631,8 @@ msgid "Forgery Challenge"
 msgstr "Desafío de Forja"
 
 msgid "Farms the selected Forgery Challenge. Must be able to teleport (F2)."
-msgstr "Farmea el Desafío de Forja seleccionado. Debes poder teletransportarte (F2)."
+msgstr ""
+"Farmea el Desafío de Forja seleccionado. Debes poder teletransportarte (F2)."
 
 msgid "Which Forgery Challenge to Farm"
 msgstr "Qué Desafío de Forja farmear (lista F2)"
@@ -576,8 +643,11 @@ msgstr "El número del Desafío de Forja en la lista F2."
 msgid "not enough stamina"
 msgstr "vigor insuficiente"
 
-msgid "Click skill failed, check if the keybinding is correct in ok-ww settings!"
-msgstr "¡Fallo al hacer clic en la habilidad, comprueba si la asignación de teclas es correcta en la configuración de ok-ww!"
+msgid ""
+"Click skill failed, check if the keybinding is correct in ok-ww settings!"
+msgstr ""
+"¡Fallo al hacer clic en la habilidad, comprueba si la asignación de teclas "
+"es correcta en la configuración de ok-ww!"
 
 msgid "Change Time to Night"
 msgstr "Cambiar Hora a Noche"
@@ -592,13 +662,16 @@ msgid "Half-Auto Rougue"
 msgstr "Rogue Semiautomático (Semanal)"
 
 msgid "Enable half-auto combat in weekly rougue, language needs Chinese"
-msgstr "Habilita el combate semiautomático en el rogue semanal, se requiere intervención manual si te atascas"
+msgstr ""
+"Habilita el combate semiautomático en el rogue semanal, se requiere "
+"intervención manual si te atascas"
 
 msgid "Auto Pick Echo Treasure"
 msgstr "Recoger Tesoro de Eco Automáticamente"
 
 msgid "If set to False, treasure will be claimed if stamina is sufficient"
-msgstr "Si se establece en Falso, el tesoro se reclamará si el vigor es suficiente"
+msgstr ""
+"Si se establece en Falso, el tesoro se reclamará si el vigor es suficiente"
 
 msgid "Half-Auto Rougue Task Finish"
 msgstr "Tarea de Rogue Semiautomático Finalizada"
@@ -628,7 +701,7 @@ msgid "Yes if Farming Nightmare: Hecate"
 msgstr "Sí si farmeas Pesadilla: Hécate"
 
 msgid "Auto Farm all Nightmare Nest"
-msgstr ""
+msgstr "Farmea automáticamente todos los Nidos de Pesadilla."
 
 msgid "Default"
 msgstr ""
@@ -655,7 +728,7 @@ msgid "Wait time before each combat (seconds), overrides Boss profile if set"
 msgstr ""
 
 msgid "Auto Click Fast Travel in Map"
-msgstr ""
+msgstr "Hace clic automáticamente en Viaje rápido en el mapa."
 
 msgid "Character Config"
 msgstr ""
@@ -704,3 +777,386 @@ msgstr ""
 
 msgid "Farm"
 msgstr ""
+
+msgid "Multi Account Daily Task"
+msgstr "Tarea diaria multi cuenta"
+
+msgid "Automatically switch accounts and run Daily Task for each account"
+msgstr ""
+"Cambiar cuentas automáticamente y ejecutar la Tarea Diaria para cada cuenta"
+
+msgid "Completed"
+msgstr "Completado"
+
+msgid "All Accounts"
+msgstr "Todas las cuentas"
+
+msgid "Switching back to login screen"
+msgstr "Volviendo a la pantalla de inicio de sesión"
+
+msgid "Back at login screen"
+msgstr "De vuelta en la pantalla de inicio de sesión"
+
+msgid "Current account: {account}"
+msgstr "Cuenta actual: {account}"
+
+msgid "Click next account: {account}"
+msgstr "Hacer clic en la siguiente cuenta: {account}"
+
+msgid "Selected account: {selected}, displayed account: {displayed}"
+msgstr "Cuenta seleccionada: {selected}, cuenta mostrada: {displayed}"
+
+msgid "Confirmed selected account: {account}"
+msgstr "Cuenta seleccionada confirmada: {account}"
+
+msgid "Account display does not match, retrying ({attempt}/{max_retries})"
+msgstr ""
+"La cuenta mostrada no coincide, reintentando ({attempt}/{max_retries})"
+
+msgid ""
+"Account selection failed after {max_retries} retries; {account} is still not"
+" displayed. Continuing login attempt"
+msgstr ""
+"La selección de cuenta falló tras {max_retries} reintentos; {account} aún no"
+" se muestra. Se continuará con el intento de inicio de sesión"
+
+msgid "Failed to switch account"
+msgstr "No se pudo cambiar de cuenta"
+
+msgid "Login successful"
+msgstr "Inicio de sesión correcto"
+
+msgid "Teleport to Boss"
+msgstr "Teletransportar al jefe"
+
+msgid "Boss Level"
+msgstr "Nivel del jefe"
+
+msgid "Teleport to Boss in F2 Menu"
+msgstr "Teletransportar al jefe desde el menu F2"
+
+msgid "Choose the Lowest that Drop a Echo"
+msgstr "Elige el nivel mas bajo que suelte un eco"
+
+msgid "No"
+msgstr "No"
+
+msgid "Weekly Challenge"
+msgstr "Desafio semanal"
+
+msgid "Boss Challenge"
+msgstr "Desafio de jefe"
+
+msgid "Which Weekly Boss to Teleport"
+msgstr "Jefe semanal al que teletransportar"
+
+msgid "Which Boss Challenge to Teleport"
+msgstr "Desafio de jefe al que teletransportar"
+
+msgid "From Top to Bottom, Starting with 1"
+msgstr "De arriba a abajo, empezando en 1"
+
+msgid "Characters"
+msgstr "Personajes"
+
+msgid "Character Code"
+msgstr "Código del personaje"
+
+msgid "Use built in"
+msgstr "Usar integrado"
+
+msgid "Use custom"
+msgstr "Usar personalizado"
+
+msgid "Ask AI"
+msgstr "Preguntar a la IA"
+
+msgid "How To"
+msgstr "Cómo usar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Custom code saved"
+msgstr "Código personalizado guardado"
+
+msgid "Unsaved changes"
+msgstr "Cambios sin guardar"
+
+msgid "Unsaved Changes"
+msgstr "Cambios sin guardar"
+
+msgid "Discard unsaved character code changes?"
+msgstr "¿Descartar los cambios sin guardar del código del personaje?"
+
+msgid "Saved and reloaded"
+msgstr "Guardado y recargado"
+
+msgid "Custom character code saved and reloaded."
+msgstr "Código personalizado del personaje guardado y recargado."
+
+msgid "Custom character code saved and reloaded for loaded characters."
+msgstr ""
+"Código personalizado guardado y recargado para los personajes cargados."
+
+msgid "Success"
+msgstr "Éxito"
+
+msgid "Using built in code"
+msgstr "Usando código integrado"
+
+msgid "Built in character code selected."
+msgstr "Código integrado del personaje seleccionado."
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Ask AI template copied. Paste it into an AI chatbot."
+msgstr "Plantilla para IA copiada. Pégala en un chatbot de IA."
+
+msgid "Copied"
+msgstr "Copiado"
+
+msgid ""
+"Choose Use custom to edit a character's Python code. Use built-in mode to read and select the original code.\n"
+"\n"
+"Ask AI copies a prompt to the clipboard with the full current code at the top. Paste it into an AI chatbot, describe the change after 'I want to implement:', and ask it to return the full modified code.\n"
+"\n"
+"Paste the returned code back into this editor, review the highlighted changed lines, then click Save to apply changes."
+msgstr ""
+"Elige Usar personalizado para editar el código Python de un personaje. El modo integrado permite leer y seleccionar el código original.\n"
+"\n"
+"Preguntar a la IA copia al portapapeles una plantilla con el código completo actual al principio. Pégala en un chatbot de IA, describe el cambio después de 'I want to implement:' y pídele que devuelva el código completo modificado.\n"
+"\n"
+"Pega el código devuelto en este editor, revisa las líneas resaltadas y haz clic en Guardar para aplicar los cambios."
+
+msgid "How To Modify Character Code"
+msgstr "Cómo modificar el código del personaje"
+
+msgid "Reset"
+msgstr "Restablecer"
+
+msgid "Reset Custom Code"
+msgstr "Restablecer código personalizado"
+
+msgid "Reset this character to built in code and remove the custom code?"
+msgstr ""
+"¿Restablecer este personaje al código integrado y eliminar el código "
+"personalizado?"
+
+msgid ""
+"Custom code matches built in code. Removed custom code and switched to built"
+" in."
+msgstr ""
+"El c?digo personalizado coincide con el integrado. Se elimin? el c?digo "
+"personalizado y se cambi? al integrado."
+
+msgid ""
+"Custom code matches built in code. Removed custom code, switched to built "
+"in, and reloaded loaded characters."
+msgstr ""
+"El c?digo personalizado coincide con el integrado. Se elimin?, se cambi? al "
+"integrado y se recargaron los personajes cargados."
+
+msgid "Custom code reset to built in code."
+msgstr "Código personalizado restablecido al código integrado."
+
+msgid "Custom code reset to built in code and reloaded for loaded characters."
+msgstr ""
+"Código personalizado restablecido al integrado y recargado para los "
+"personajes cargados."
+
+msgid "Contribute Code"
+msgstr "Contribuir código"
+
+msgid "I want to implement:"
+msgstr "Quiero implementar:"
+
+msgid "Please modify the full {class_name} character automation code above."
+msgstr ""
+"Modifica el código completo de automatización del personaje {class_name} "
+"anterior."
+
+msgid ""
+"Return only the complete modified Python code for the whole file, not a "
+"patch and not an explanation."
+msgstr ""
+"Devuelve solo el código Python completo modificado de todo el archivo, no un"
+" parche ni una explicación."
+
+msgid ""
+"Keep the class name as {class_name}. Preserve imports that are still needed."
+msgstr ""
+"Mantén el nombre de la clase como {class_name}. Conserva las importaciones "
+"que sigan siendo necesarias."
+
+msgid ""
+"Use this BaseChar reference while reasoning about helper methods, task APIs,"
+" state, switching, cooldowns, and combat flow:"
+msgstr ""
+"Usa esta referencia de BaseChar para razonar sobre m?todos auxiliares, API "
+"de tareas, estado, cambios de personaje, tiempos de recarga y flujo de "
+"combate:"
+
+msgid "自动周常乐园"
+msgstr "Jardín semanal automático"
+
+msgid "Detect and click garden actions until the task is stopped."
+msgstr ""
+"Detecta y hace clic en acciones del jardín hasta que se detenga la tarea."
+
+msgid "Check Weekly Garden"
+msgstr "Comprobar jardín semanal"
+
+msgid ""
+"After claiming daily rewards, check weekly Garden progress and run Garden "
+"Task if 6000 points has not been reached."
+msgstr ""
+"Después de reclamar las recompensas diarias, comprueba el progreso del "
+"jardín semanal y ejecuta la tarea de jardín si no se han alcanzado 6000 "
+"puntos."
+
+msgid "Guidebook Key"
+msgstr "Guía de Solaris"
+
+msgid "Rover"
+msgstr "Rover"
+
+msgid "Rover: Spectro"
+msgstr "Rover: Espectro"
+
+msgid "Rover: Havoc"
+msgstr "Rover: Caos"
+
+msgid "Rover: Aero"
+msgstr "Rover: Aero"
+
+msgid "Yangyang: Xuanling"
+msgstr "Yangyang: Xuanling"
+
+msgid "Merge Discarded Echoes"
+msgstr "Fusionar ecos descartados"
+
+msgid ""
+"Must have 1000 discarded Echo to Run, Merge discarded Echoes in full "
+"batches of 100."
+msgstr ""
+"Debe haber 1000 ecos descartados para ejecutarse. Fusiona ecos descartados "
+"en lotes completos de 100."
+
+msgid "Bag Key"
+msgstr "Tecla de la mochila"
+
+msgid "In-game hotkey used to open the Bag."
+msgstr "Tecla del juego usada para abrir la mochila."
+
+msgid "Echo"
+msgstr "Ecos"
+
+msgid "Check Discarded Echo"
+msgstr "Comprobar ecos descartados"
+
+msgid "After daily tasks, check for 1000 discarded Echoes and merge them."
+msgstr "Después de las tareas diarias, comprueba si hay 1000 ecos descartados y fusiónalos."
+
+msgid "Teleport and Farm 4C Echo"
+msgstr "Teletransportarse y farmear eco de coste 4"
+
+msgid "Merge Echo If discarded > 1000"
+msgstr "Fusionar ecos si hay más de 1000 descartados"
+
+msgid "Additional Tasks to Run After Daily Task"
+msgstr "Tareas adicionales para ejecutar después de la tarea diaria"
+
+msgid "Select optional tasks. Nightmare Nest runs before stamina farming to help complete the daily task; the other tasks run afterward."
+msgstr "Selecciona tareas opcionales. Nido de pesadilla se ejecuta antes de gastar energía para ayudar a completar la tarea diaria; las demás se ejecutan después."
+
+msgid "Teleport and Farm 4C Echo requires \"Teleport to Boss\" to be enabled in Farm Echo Task."
+msgstr "Teletransportarse y farmear eco de coste 4 requiere activar \"Teletransportarse al jefe\" en la tarea de farmeo de ecos."
+
+msgid "Auto Farm all Nightmare Nest requires at least one \"Which to Farm\" option."
+msgstr "Farmear automáticamente todos los nidos de pesadilla requiere seleccionar al menos una opción en \"Qué farmear\"."
+
+msgid "Daily Task Completed"
+msgstr "Tarea diaria completada"
+
+msgid "Daily task completed, start teleport to farm 4C echo"
+msgstr "Tarea diaria completada; iniciando teletransporte para farmear ecos de coste 4"
+
+msgid "can't find dialog right button"
+msgstr "No se puede encontrar el botón derecho del diálogo"
+
+msgid "can't find dialog left button"
+msgstr "No se puede encontrar el botón izquierdo del diálogo"
+
+msgid "⚔️ Auto Combat"
+msgstr "⚔️ Combate automático"
+
+msgid "🔑 Auto Login"
+msgstr "🔑 Inicio de sesión automático"
+
+msgid "🌸 Auto Pick"
+msgstr "🌸 Recolección automática"
+
+msgid "🎛️ 批量修改声骸主属性(仅支持简中游戏语言)"
+msgstr "🎛️ Modificar atributos principales de Ecos por lotes (solo chino simplificado)"
+
+msgid "📅 Daily Task"
+msgstr "📅 Tarea diaria"
+
+msgid "🩺 Diagnosis"
+msgstr "🩺 Diagnóstico"
+
+msgid "⬆️ 批量强化声骸(游戏与okww语言必须为简体/繁体中文)"
+msgstr "⬆️ Mejorar Ecos por lotes (el juego y okww deben usar chino simplificado/tradicional)"
+
+msgid "🌀 Farm 4C Echo in Dungeon/World"
+msgstr "🌀 Farmear Eco 4C en mazmorra/mundo"
+
+msgid "🗺️ Farm Map with Star Path"
+msgstr "🗺️ Farmear el mapa siguiendo una ruta de estrellas"
+
+msgid "✈️ Fast Travel"
+msgstr "✈️ Viaje rápido"
+
+msgid "♻️ 数据坞五合一"
+msgstr "♻️ Fusión 5 a 1 del Banco de Datos"
+
+msgid "⚒️ Forgery Challenge"
+msgstr "⚒️ Desafío de Forja"
+
+msgid "🎡 自动周常乐园"
+msgstr "🎡 Parque semanal automático"
+
+msgid "♻️ Merge Discarded Echoes"
+msgstr "♻️ Fusionar Ecos descartados"
+
+msgid "🖱️ Prevent Wuthering Waves from moving the mouse"
+msgstr "🖱️ Impedir que Wuthering Waves mueva el ratón"
+
+msgid "👥 Multi Account Daily Task"
+msgstr "👥 Tarea diaria de varias cuentas"
+
+msgid "🌙 Nightmare Nest Task"
+msgstr "🌙 Tarea de Nidos de Pesadilla"
+
+msgid "🧪 Simulation Challenge"
+msgstr "🧪 Desafío de Simulación"
+
+msgid "⏭️ Skip Dialog during Quests"
+msgstr "⏭️ Omitir diálogos durante misiones"
+
+msgid "🌊 Tacet Suppression"
+msgstr "🌊 Supresión Tacet"
+
+msgid "点击B进入背包, 在过滤器中选择需要修改主属性的声骸, 并按照等级从0排序后开始."
+msgstr "Pulsa B para abrir la mochila, selecciona en el filtro los Ecos cuyo atributo principal quieras modificar y ordénalos por nivel desde 0 antes de comenzar."
+
+msgid "点击B进入背包, 在过滤器中选择需要强化的声骸, 并按照等级从0排序后开始."
+msgstr "Pulsa B para abrir la mochila, selecciona en el filtro los Ecos que quieras mejorar y ordénalos por nivel desde 0 antes de comenzar."
+
+msgid "游戏与okww语言必须为简体/繁体中文,必须16:9分辨率,使用1600x900以上分辨率, 勾选需要的, 没勾的都会自动合成"
+msgstr "El juego y okww deben estar en chino simplificado/tradicional; se requiere una resolución 16:9 de al menos 1600x900. Marca lo que quieras conservar; lo no marcado se fusionará automáticamente."
+
+msgid "Switch to Healer before and after Combat"
+msgstr "Cambiar al sanador antes y después del combate"

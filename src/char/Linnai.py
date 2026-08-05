@@ -1,63 +1,111 @@
-import time
-
-from src.char.BaseChar import BaseChar, forte_white_color, Priority
+from src.char.BaseChar import BaseChar, SwitchPriority, forte_white_color
 
 class Linnai(BaseChar):
+    RES_CHECK_THRESHOLD = 0.6
+    INTRO_RES_WAIT = 1.0
+    AEMEATH_INTRO_RES_WAIT = 1.6
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_heavy = 0
-        self.attribute = 0
 
     def do_perform(self):
-        self.decide_teammate()
-        if self.has_intro:
-            if self.check_res():
-                self.continues_normal_attack(1.33)
-            else:
-                self.continues_normal_attack(1)
-                self.task.mouse_down()      
-                self.click_echo(time_out=0)
-                if self.task.wait_until(self.is_mouse_forte_full, time_out=2) and \
-                     self.task.wait_until(lambda: not self.is_mouse_forte_full(), time_out=2.5):
-                    self.task.mouse_up()
-                    self.sleep(0.4)                 
-                    self.perform_under_intro()
-                else:
-                    self.task.mouse_up()
-                
-        else: 
-            self.click_echo(time_out=0)
-            if self.perform_under_intro():
-                pass
-            elif self.flying():
-                self.continues_normal_attack(0.1)
-            elif not self.is_con_full() and self.click_liberation():
-                self.continues_normal_attack(0.5)
-            self.click_resonance()
+        if self.has_intro and self.check_res():
+            self.continues_normal_attack(1.33)
+        else:
+            self.charge_heavy()
+        if self.liberation_available():
+            self.click_liberation()
         return self.switch_next_char()
+
+    def charge_heavy(self):
+        """攒满回路后蓄力重击; 攒满即放, 放完接 perform_under_intro。
+
+        无论是否协奏入场都执行: Mornye 不满协奏切来时(has_intro=False)也要蓄力, 故不再用 has_intro 门控.
+        """
+        self.continues_normal_attack(1)
+        self.click_echo(time_out=0)
+        if not self.is_con_full():
+            self.click_liberation()
+        if not self.is_mouse_forte_full():
+            self.click_resonance()
+        self.task.wait_until(self.is_mouse_forte_full, post_action=self.click, time_out=2)
+        self.task.mouse_down()
+        if self.task.wait_until(lambda: not self.is_mouse_forte_full(), time_out=5):
+            self.task.mouse_up()
+            self.sleep(0.4)
+            self.perform_under_intro()
+        else:
+            self.task.mouse_up()
             
     def perform_under_intro(self):
-        if not self.check_res():
+        if not self.wait_for_accelerate_ready():
             self.logger.debug(f'Linnai fails entering accelerate mode!')
             return False
         self.task.wait_until(lambda: self.is_color_full() or self.is_con_full(), post_action=self.click,
                                      time_out=1)
-        self.task.wait_until(lambda: not self.is_forte_full(),
-             post_action=self.task.jump, time_out=3)
+        if self.task.wait_until(lambda: not self.is_forte_full(),
+             post_action=self.task.jump, time_out=3):
+        
+            if self.task.wait_until(lambda: self.click_resonance()[0],
+             post_action=self.click, time_out=2):
+                self.wait_after_resonance_kick()
+                second_kick = False
 
-        if self.click_resonance()[0]:
-            self.sleep(0.3) 
-        self.wait_down()
+                def click_second_resonance():
+                    nonlocal second_kick
+                    if self.is_con_full():
+                        return True
+                    second_kick = self.click_resonance()[0]
+                    return second_kick
+
+                self.task.wait_until(click_second_resonance, post_action=self.click, time_out=3)
+                if second_kick:
+                    self.wait_after_resonance_kick()
         if not self.is_con_full() and self.click_liberation():
             self.task.wait_until(self.is_con_full, post_action=self.click_with_interval, time_out=1.2) 
         return True
 
+    def wait_after_resonance_kick(self):
+        self.sleep(0.3)
+        self.wait_down()
+
+    def wait_for_accelerate_ready(self):
+        """等待琳奈入场后的目标状态稳定，避免特效遮挡导致一帧误判。"""
+        if self.check_res():
+            return True
+        time_out = self.INTRO_RES_WAIT
+        if self.has_intro and self.check_outro() in {'char_aemeath'}:
+            time_out = self.AEMEATH_INTRO_RES_WAIT
+        return self.task.wait_until(self.check_res, post_action=self.click_with_interval, time_out=time_out)
+
+    def get_target_names(self):
+        if hasattr(self.task, 'get_target_names'):
+            return self.task.get_target_names()
+        return 'has_target', 'no_target'
+
+    def find_target_status_in_box(self, box_name):
+        try:
+            box = self.task.get_box_by_name(box_name)
+            return self.task.find_best_match_in_box(box, list(self.get_target_names()),
+                                                    threshold=self.RES_CHECK_THRESHOLD)
+        except Exception as e:
+            self.logger.debug(f'Linnai check res skipped {box_name}: {e}')
+            return None
+
     def check_res(self):
         if not self.task.in_team_and_world():
             return False
-        best = self.task.find_best_match_in_box(self.task.get_box_by_name('target_box_long2'),
-                                               ['has_target', 'no_target'],
-                                               threshold=0.6)
+
+        best = self.find_target_status_in_box('target_box_long2')
+        if not best:
+            best = self.find_target_status_in_box('box_target_enemy_long')
+        if not best:
+            try:
+                best = self.task.find_one('target_box_short', threshold=self.RES_CHECK_THRESHOLD)
+            except Exception as e:
+                self.logger.debug(f'Linnai check res skipped target_box_short: {e}')
+                best = None
         self.logger.debug(f'check res {best}')
         return best
 
@@ -70,22 +118,8 @@ class Linnai(BaseChar):
     def on_combat_end(self, chars):
         self.switch_other_char()
 
-#    def combo_limit(self):
-#        return self.time_elapsed_accounting_for_freeze(self.last_heavy) < 20
-
-    def do_get_switch_priority(self, current_char: BaseChar, has_intro=False, target_low_con=False):
-        self.decide_teammate()
-        if self.attribute == 2 and has_intro and current_char.char_name in {'char_moning'}:
-            return Priority.MAX
-        if not has_intro and current_char.char_name in {'char_aemeath'}:
-            return Priority.FAST_SWITCH + 1
-        return super().do_get_switch_priority(current_char, has_intro)
-        
-    def decide_teammate(self):
-        from src.char.Mornye import Mornye
-        if self.attribute > 0:
-            return
-        if self.task.has_char(Mornye):
-            self.attribute = 2
-        else:
-            self.attribute = 1
+    def get_switch_priority(self, current_char=None, has_intro=False, target_low_con=False):
+        # Mornye 离场就强制切 Linnai
+        if current_char and current_char.char_name == 'char_moning':
+            return SwitchPriority.MUST
+        return super().get_switch_priority(current_char, has_intro, target_low_con)

@@ -4,8 +4,7 @@ import numpy as np
 import math
 from enum import Enum
 
-from src.char.BaseChar import BaseChar, Priority, forte_white_color
-from src.char.Healer import Healer
+from src.char.BaseChar import BaseChar, SwitchPriority, forte_white_color
 from ok import color_range_to_bound
 
 
@@ -23,11 +22,13 @@ class Phoebe(BaseChar):
         self.star_available = False
         self.char_zani = None
         self.attribute_mismatch = False
+        self.first_rotation_done = False
         self.state = {
             "enter_status": 0,
             "starflash_combo": 0,
             "liberation": 0,
-            "outro": 0
+            "outro": 0,
+            "priority_liberation_cast": 0
         }
 
     def reset_state(self):
@@ -36,6 +37,7 @@ class Phoebe(BaseChar):
         self.attribute = 0
         self.star_available = False
         self.char_zani = None
+        self.first_rotation_done = False
 
     def do_perform(self):
         self.last_outro_time = -1
@@ -45,7 +47,9 @@ class Phoebe(BaseChar):
         if self.has_intro:
             self.continues_normal_attack(1.5)
         else:
+            # 非变奏切人后会自然接一段普攻，先等它结算协奏，再抢大招。
             self.sleep(0.01)
+        self._try_liberation_now()
 
         if self.attribute == 1:
             self.click_echo(time_out=0)
@@ -74,17 +78,42 @@ class Phoebe(BaseChar):
                 self.click_liberation(send_click=True)
         ):
             self.state["liberation"] += 1
+            self.state["priority_liberation_cast"] = 1
             self.check_combat()
         if status_entered == State.SUCCESS or self.judge_forte() > 0:
             self.starflash_combo()
+            # 第一次重击后检查大招（可插入），无论是否触发都继续打第二次重击
+            self._try_liberation_now()
+            if (self.attribute == 2 and
+                    self.state["starflash_combo"] < 2 and
+                    self.get_zani_state() != 1):
+                self.logger.info('phoebe: try second starflash_combo')
+                self.starflash_combo()
+        self._try_liberation_now()
         if self.resonance_available():
             if self.attribute == 2:
-                self.click_resonance_once()
+                # 第一轮未完成时跳过共鸣点击，避免触发非蓝色重击打断普攻填协奏
+                if not self.confession_ready() and self.first_rotation_done:
+                    self.click_resonance_once()
             else:
                 self.click_resonance()
+            self._ensure_first_rotation_con()
             return self.switch_next_char()
         self.continues_normal_attack(0.1)
+        self._ensure_first_rotation_con()
         self.switch_next_char()
+
+    def _ensure_first_rotation_con(self):
+        """完整输出轴切人前确保协奏打满（大招中途快切不会走到这里）。"""
+        if not self.first_rotation_done:
+            self.first_rotation_done = True
+        if self.is_con_full():
+            return
+        # 赞妮大招态由 zani_linkage 提前 return；此处再挡一层
+        if self.get_zani_state() == 1:
+            return
+        self.logger.info('phoebe: wait for full con before switch')
+        self.continues_normal_attack(5.0, until_con_full=True)
 
     def zani_linkage(self):
         self.logger.debug('zani linkage')
@@ -95,7 +124,9 @@ class Phoebe(BaseChar):
                 if result == 0 or self.char_zani.liberation_time_left() > 3:
                     self.continues_normal_attack(1, interval=0.15)
             else:
-                self.click_resonance(send_click=False)
+                # 首轮跳过 E；之后 confession 已经就绪时也不要短按 E，避免打断协奏轴。
+                if self.first_rotation_done and not self.confession_ready():
+                    self.click_resonance(send_click=False)
             return True
         if result == 1:
             self.cast_remaining_skills()
@@ -289,9 +320,9 @@ class Phoebe(BaseChar):
                     outer_start = time.time()
                 self.task.next_frame()
             if self.attribute == 2:
-                self.logger.info(f'Enters confession status')
+                self.logger.info('Enters confession status')
             else:
-                self.logger.info(f'Enters absolution status')
+                self.logger.info('Enters absolution status')
             self.continues_right_click(0.05)
             self.star_available = True
             self.reset_action()
@@ -299,27 +330,49 @@ class Phoebe(BaseChar):
             return State.SUCCESS
         return State.UNAVAILABLE
 
-    def switch_next_char(self, *args):
-        if self.is_con_full():
-            if self.attribute == 2:
-                self.click_echo()
-                self.state["outro"] += 1
-        return super().switch_next_char(*args)
+    def _try_liberation_now(self):
+        """每个主要动作前检查大招，可用就立即释放，返回True表示已释放"""
+        if (self.star_available and not self.flying()
+                and self.liberation_available()):
+            if self.click_liberation(send_click=True):
+                self.state["liberation"] += 1
+                self.state["priority_liberation_cast"] = 1
+                self.check_combat()
+                return True
+        return False
 
-    def do_get_switch_priority(self, current_char: BaseChar, has_intro=False, target_low_con=False):
-        if self.attribute == 0:
-            self.decide_teammate()
-        if self.attribute == 2:
-            if self.get_zani_state() == 1 and not self.is_action_complete():
-                return 10000
-            if has_intro and self.get_zani_state() != 1 and isinstance(current_char, Healer):
-                return 10000
-        if not has_intro and self.last_outro_time > 0 and self.time_elapsed_accounting_for_freeze(self.last_outro_time,
-                                                                                                  intro_motion_freeze=True) < 4.5:
-            self.logger.info(f'performing outro, Priority {Priority.MIN}')
-            return Priority.MIN
-        else:
-            return super().do_get_switch_priority(current_char, has_intro)
+    def _try_cast_liberation_before_switch(self):
+        # 有大放大:flying / zani_linkage / 共鸣等提前切人的分支可能带着可用大招切走,
+        # 在此切人前补放一次。加保护:仅辅助型、不在空中、每轮不重复放
+        if self.attribute != 2:
+            return False
+        if self.state.get("priority_liberation_cast"):
+            return False
+        if not self.star_available or self.flying():
+            return False
+        if not self.liberation_available():
+            return False
+        self.logger.info('cast available liberation before switch')
+        if self.click_liberation(send_click=True):
+            self.state["priority_liberation_cast"] = 1
+            self.state["liberation"] += 1
+            self.check_combat()
+            return True
+        return False
+
+    def switch_next_char(self, *args, **kwargs):
+        self._try_cast_liberation_before_switch()
+        if self.attribute == 2 and self.is_con_full():
+            self.click_echo()
+            self.state["outro"] += 1
+        return super().switch_next_char(*args, **kwargs)
+
+    def get_switch_priority(self, current_char=None, has_intro=False, target_low_con=False):
+        if not has_intro and self.last_outro_time > 0 and self.time_elapsed_accounting_for_freeze(
+                self.last_outro_time, intro_motion_freeze=True) < 4.5:
+            self.logger.info('performing outro, switch priority no')
+            return SwitchPriority.NO
+        return super().get_switch_priority(current_char, has_intro, target_low_con)
 
     def check_middle_star(self):
         if self.star_available:
@@ -417,30 +470,19 @@ class Phoebe(BaseChar):
 
     def reset_action(self):
         if self.attribute == 2:
-            self.logger.info(f'reset action')
+            self.logger.info('reset action')
             self.state = {
                 "enter_status": 0,
                 "starflash_combo": 0,
                 "liberation": 0,
-                "outro": 0
+                "outro": 0,
+                "priority_liberation_cast": 0
             }
 
     def is_forte_full(self):
         if not self.star_available:
             return super().is_forte_full()
-        elif self.attribute == 1:
-            box = self.task.box_of_screen_scaled(3840, 2160, 2286, 1992, 2306, 2018, name='forte_full', hcenter=True)
-        else:
-            box = self.task.box_of_screen_scaled(3840, 2160, 2256, 1992, 2276, 2018, name='forte_full', hcenter=True)
-        self.task.draw_boxes(box.name, box)
-        mean_val = contrast_val = 0
-        if self.task.calculate_color_percentage(forte_white_color, box) > 0.08:
-            cropped = box.crop_frame(self.task.frame)
-            gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
-            mean_val = np.mean(gray)
-            contrast_val = np.std(gray)
-            self.logger.debug(f'is_forte_full mean {mean_val} contrast {contrast_val}')
-        return mean_val > 190 and contrast_val < 50
+        return self.is_mouse_forte_full()
 
     def shorekeeper_auto_dodge(self):
         from src.char.ShoreKeeper import ShoreKeeper

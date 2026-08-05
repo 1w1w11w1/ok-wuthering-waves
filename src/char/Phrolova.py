@@ -1,6 +1,6 @@
 import time
 
-from src.char.BaseChar import BaseChar, Priority
+from src.char.BaseChar import BaseChar, SwitchPriority
 
 
 class Phrolova(BaseChar):
@@ -26,8 +26,6 @@ class Phrolova(BaseChar):
         if self.flying():
             self.wait_down()
         if self.liberation_available() and self.click_liberation(wait_if_cd_ready=0):
-            if self.task.name and self.task.name == "Nightmare Nest Task":
-                self.continues_click(self.get_liberation_key(), 1)
             return self.switch_next_char()
         if self.heavy_and_liber():
             return self.switch_next_char()
@@ -46,8 +44,6 @@ class Phrolova(BaseChar):
             self.sp = True
         while timeout():
             if self.liberation_available() and self.click_liberation(wait_if_cd_ready=0):
-                if self.task.name and self.task.name == "Nightmare Nest Task":
-                    self.continues_click(self.get_liberation_key(), 1.5)
                 return self.switch_next_char()
             if self.flying():
                 self.shorekeeper_auto_dodge()
@@ -70,14 +66,17 @@ class Phrolova(BaseChar):
             self.task.next_frame()
         self.switch_next_char()
 
-    def do_get_switch_priority(self, current_char: BaseChar, has_intro=False, target_low_con=False):
-        if self.time_elapsed_accounting_for_freeze(
-                self.last_liberation) > 14 and has_intro and current_char.char_name in {'char_cantarella'}:
-            return Priority.MAX
+    def _cantarella_outro_ready(self, current_char, has_intro):
+        return self.time_elapsed_accounting_for_freeze(
+            self.last_liberation) > 14 and has_intro and current_char and current_char.char_name in {'char_cantarella'}
+
+    def get_switch_priority(self, current_char=None, has_intro=False, target_low_con=False):
         self.logger.debug(f'Phrolova last_liberation {self.time_elapsed_accounting_for_freeze(self.last_liberation)}')
+        if self._cantarella_outro_ready(current_char, has_intro):
+            return SwitchPriority.MUST
         if self.time_elapsed_accounting_for_freeze(self.last_liberation) < 24:
-            return Priority.MIN
-        return Priority.FAST_SWITCH
+            return SwitchPriority.NO
+        return super().get_switch_priority(current_char, has_intro, target_low_con)
 
     def resonance_available(self):
         if self.sp:
@@ -88,8 +87,6 @@ class Phrolova(BaseChar):
         if self.heavy_click_forte(check_fun=self.is_mouse_forte_full):
             self.logger.debug('Phrolova heavy_click_forte')
             self.task.wait_until(lambda: self.click_liberation(wait_if_cd_ready=0), time_out=3)
-            if self.task.name and self.task.name == "Nightmare Nest Task":
-                self.continues_click(self.get_liberation_key(), 1)
             return True
 
     def shorekeeper_auto_dodge(self):

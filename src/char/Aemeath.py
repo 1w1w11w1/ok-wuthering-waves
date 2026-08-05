@@ -1,95 +1,97 @@
 import time
 
-from src.char.BaseChar import BaseChar, Priority
+from src.char.BaseChar import BaseChar
 
 
 class Aemeath(BaseChar):
+    LIBERATION_COOLDOWN = 25
+    LIBERATION_FORCE_DURATION = 30
+    LIB2_PREPARE_WINDOW = 8
+    INTRO_LIBERATION_DELAY = 14
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.should_wait = False
-        self.human_heavy = False
-        self.intro_time = -1
-        self.last_liber = -1
+        self.enhance_e_cast_this_turn = False
+        self.lib2_cast_this_turn = False
+        self.must_cast_lib2_this_turn = False
+
+    def lib2_available(self):
+        return bool(self.task.find_one('aemeath_lib2', threshold=0.7))
 
     def do_perform(self):
-        self.intro_time = -1
-        if self.has_intro:
-            self.task.wait_until(self.enhance_e_available, post_action=self.click_with_interval,
-                                     time_out=3.5)
-            if self.check_outro() in {'char_linnai', 'char_lupa'}:
-                self.intro_time = 14
-            if self.check_outro() in {'chang_changli', 'char_changli2'}:
-                self.intro_time = 10
-        elif not self.liberation_available():
-            self.switch_mech()
+        self.enhance_e_cast_this_turn = False
+        self.lib2_cast_this_turn = False
+        self.must_cast_lib2_this_turn = self.has_all_buff() and self.has_intro
+        if not self.must_cast_lib2_this_turn:
+            while self.has_long_action():
+                if self.handle_heavy():
+                    self.sleep(0.3)
+            return self.switch_next_char()
+        elif self.has_intro:
+            self.continues_normal_attack(2.1)
+
         self.perform_everything()
+
         self.switch_next_char()
 
     def lib(self):
-        if self.click_liberation(wait_if_cd_ready=0):
-            self.f_break()
-            return True
-            
-    def continue_in_intro(self):
-        return self.time_elapsed_accounting_for_freeze(self.last_liber) < 30 and \
-             self.time_elapsed_accounting_for_freeze(self.last_perform) < self.intro_time
+        is_lib2 = self.lib2_available()
+        liberated = self.click_liberation(wait_if_cd_ready=0)
+        if liberated:
+            if is_lib2:
+                self.lib2_cast_this_turn = True
+        return liberated
+
+    def record_enhance_e(self):
+        self.enhance_e_cast_this_turn = True
+
+    def required_action_pending(self):
+        return (self.has_intro and not self.enhance_e_cast_this_turn) or (
+                self.must_cast_lib2_this_turn and not self.lib2_cast_this_turn)
+
+    def continue_after_action(self, start):
+        if self.has_long_action():
+            return time.time()
+        if self.required_action_pending():
+            return start
+        return None
 
     def perform_everything(self):
         start = time.time()
-        self.human_heavy = False
-        self.should_wait = self.has_intro
-        while self.time_elapsed_accounting_for_freeze(start) < 2.2 or (
-                self.should_wait and self.time_elapsed_accounting_for_freeze(start) < 10):
+        while self.time_elapsed_accounting_for_freeze(start) < 12:
             self.cycle_start()
             if self.handle_heavy():
-                self.should_wait = True
                 start = time.time()
-                self.task.next_frame()
+                if not self.f_break():
+                    self.sleep(0.1)
+                self.check_combat()
                 continue
-            elif self.lib():
-                self.last_liber = time.time()
-                self.should_wait = True
-                start = time.time()
-                if self.is_human():
-                    self.switch_mech()
-                    self.last_liber = -1
+            if self.lib():
+                if self.lib2_cast_this_turn:
                     return
+                action_performed = True
             elif self.enhance_e_available():
-                if self.click_resonance(has_animation=True, send_click=True, animation_min_duration=0.5, time_out=1.5):
-                    self.should_wait = False
+                if self.click_resonance(has_animation=True, send_click=True, animation_min_duration=0.5,
+                                        time_out=1.5)[0]:
+                    self.record_enhance_e()
                     self.click_echo(time_out=0)
-                    self.f_break()
-                    self.switch_mech()
-                    self.click()
-                if self.has_long_action() or self.lib_cd_eminent() or self.continue_in_intro():
-                    self.should_wait = True
-                    start = time.time()
-                else:
-                    self.click(after_sleep=0.01)
+                    self.task.next_frame()
+                self.lib()
+                if self.lib2_cast_this_turn:
                     return
+                action_performed = True
             else:
-                self.switch_mech()
                 self.click()
+                action_performed = False
+            if action_performed:
+                start = self.continue_after_action(start)
+                if start is None:
+                    return
             self.cycle_sleep()
 
-    def lib_cd_eminent(self):
-        cd = self.task.get_cd('liberation')
-        return 0 < cd < 1.5 or self.liberation_available()
-
     def enhance_e_available(self):
-        return (self.task.find_one('aemeath_e1', threshold=0.7) or self.task.find_one('aemeath_e2',
-                                                                                      threshold=0.7)) and not self.is_human()
-
-    def switch_mech(self):
-        start = time.time()
-        while not self.liberation_available() and time.time() - start < 3 and self.is_human():
-            self.send_resonance_key()
-            self.sleep(0.1)
-
-    def is_human(self):
-        return self.task.find_one('aemeath_human',
-                                  threshold=0.75)
+        return self.task.find_one('aemeath_e1', threshold=0.7) or self.task.find_one('aemeath_e2',
+                                                                                     threshold=0.7)
 
     def heavy_wait_highlight_down(self):
         self.task.mouse_down()
@@ -99,17 +101,11 @@ class Aemeath(BaseChar):
         return ret
 
     def handle_heavy(self):
-        while self.has_long_action():
-            self.heavy_wait_highlight_down()
+        if not self.has_long_action():
+            return False
+        if self.heavy_wait_highlight_down():
             return True
-
-    def do_get_switch_priority(self, current_char: BaseChar, has_intro=False, target_low_con=False):
-        if has_intro:
-            self.logger.info(
-                f'set priority as high because has_intro {has_intro}')
-            return Priority.FAST_SWITCH + 1
-        else:
-            return super().do_get_switch_priority(current_char, has_intro, target_low_con)
+        return False
 
     def on_combat_end(self, chars):
         self.switch_other_char()

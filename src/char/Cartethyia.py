@@ -1,6 +1,6 @@
 import time, cv2
 import numpy as np
-from src.char.BaseChar import BaseChar, Priority, forte_white_color
+from src.char.BaseChar import BaseChar, SwitchPriority, forte_white_color
 
 
 class Cartethyia(BaseChar):
@@ -48,8 +48,10 @@ class Cartethyia(BaseChar):
                 self.sleep(0.2, False)
             self.logger.debug(f'on_combat_end {self.index} switch end')
 
-    def count_base_priority(self):
-        return 10
+    def get_switch_priority(self, current_char=None, has_intro=False, target_low_con=False):
+        if not self.is_cartethyia:
+            return SwitchPriority.MUST
+        return super().get_switch_priority(current_char, has_intro, target_low_con)
 
     def do_perform(self):
         self.transform = False
@@ -104,7 +106,7 @@ class Cartethyia(BaseChar):
         return duration
 
     def click_resonance_with_lib_big(self):
-        if self.time_elapsed_accounting_for_freeze(self.last_res) < self.res_cd:
+        if self.has_cd('resonance'):
             return False
         clicked = False
         self.logger.debug(f'click_resonance start')
@@ -138,7 +140,7 @@ class Cartethyia(BaseChar):
                 break
             self.task.next_frame()
         if clicked:
-            self.update_res_cd()
+            self.record_resonance_use()
             self.res_time = time.time()
         return clicked
 
@@ -166,6 +168,8 @@ class Cartethyia(BaseChar):
             start = time.time()
             while True:
                 self.task.jump(after_sleep=0.1)
+                if self.echo_available():
+                    self.click_echo(time_out=0)
                 self.task.click(after_sleep=0.1)
                 if not self.is_mid_air_attack_available():
                     self.sleep(0.4)
@@ -177,6 +181,8 @@ class Cartethyia(BaseChar):
             start = time.time()
             while time.time() - start < 0.8:
                 self.task.jump(after_sleep=0.1)
+                if self.echo_available():
+                    self.click_echo(time_out=0)
                 self.task.click(after_sleep=0.1)
         self.try_mid_air_attack_once = False
 
@@ -186,11 +192,6 @@ class Cartethyia(BaseChar):
         self.is_cartethyia = bool(self.task.find_one(template=self.sword3_half_mat,
                                                      box=self.sword3_half_box, threshold=0.5))
         return self.is_cartethyia
-
-    def do_get_switch_priority(self, current_char: BaseChar, has_intro=False, target_low_con=False):
-        if not self.is_cartethyia:
-            return Priority.MAX
-        return super().do_get_switch_priority(current_char, has_intro)
 
     def try_lib_big(self):
         if self.is_lib_big_available():

@@ -11,7 +11,7 @@ class AutoDialogTask(TriggerTask, SkipBaseTask):
         self.default_config = {'_enabled': True}
         self.skip = None
         self.trigger_interval = 0.5
-        self.name = "Skip Dialog during Quests"
+        self.name = "⏭️ Skip Dialog during Quests"
 
     def run(self):
         if self.scene.in_team(self.in_team_and_world):
@@ -22,9 +22,9 @@ class AutoDialogTask(TriggerTask, SkipBaseTask):
             return
 
     def skip_message(self):
-        if self.find_one('message'):
-            if message_dialog := self.find_one('message_dialog', vertical_variance=0.4):
-                click = message_dialog.copy(y_offset=2.5* message_dialog.height)
+        if self.find_one('message', horizontal_variance=0.15):
+            if message_dialog := self.find_one('message_dialog', vertical_variance=0.4, horizontal_variance=0.2):
+                click = message_dialog.copy(y_offset=2.5 * message_dialog.height)
                 click.width = self.width_of_screen(0.63)
                 self.click(click, after_sleep=0.2)
                 self.log_info(f'click {click}')

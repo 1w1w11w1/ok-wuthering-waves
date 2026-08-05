@@ -2,10 +2,11 @@ import math
 import re
 import time
 from datetime import datetime, timedelta
+from typing import List
 
 import numpy as np
 
-from ok import BaseTask, Logger, find_boxes_by_name, og, find_color_rectangles, mask_white
+from ok import BaseTask, Logger, find_boxes_by_name, og, find_color_rectangles, mask_white, Box
 from ok import CannotFindException
 import cv2
 
@@ -15,12 +16,15 @@ from src.scene.WWScene import WWScene
 logger = Logger.get_logger(__name__)
 number_re = re.compile(r'(\d+)')
 stamina_re = re.compile(r'(\d+)/(\d+)')
+LOGIN_TEXTS = ["登录", re.compile('Log', re.IGNORECASE), '登入']
+LOGIN_CLICK_SETTLE_TIME = 4  # seconds; keep below AutoLoginTask trigger_interval (5) so triggers don't overlap
 f_white_color = {
     'r': (235, 255),  # Red range
     'g': (235, 255),  # Green range
     'b': (235, 255)  # Blue range
 }
 processed_feature = False
+WIDE_MODE_UI_SCALE = 0.75
 
 
 class BaseWWTask(BaseTask):
@@ -28,13 +32,19 @@ class BaseWWTask(BaseTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pick_echo_config = self.get_global_config('Pick Echo Config')
         self.monthly_card_config = self.get_global_config('Monthly Card Config')
         self.char_config = self.get_global_config('Character Config')
-        self.key_config = self.get_global_config('Game Hotkey Config')  # 游戏热键配置
+        self.key_config = self.get_global_config('Game Hotkey')  # 游戏热键配置
         self.next_monthly_card_start = 0
-        self._logged_in = False
         self.scene: WWScene | None = None
+
+    @property
+    def logged_in(self):
+        return og.my_app.logged_in
+
+    @logged_in.setter
+    def logged_in(self, value):
+        og.my_app.logged_in = value
 
     def is_open_world_auto_combat(self):
         from src.task.AutoCombatTask import AutoCombatTask
@@ -104,6 +114,9 @@ class BaseWWTask(BaseTask):
                                          y_offset=-f_search_box.height * 5,
                                          name='search_dialog')
         return f_search_box
+
+    def find_f_with_claim_text(self):
+        return self.find_f_with_text(target_text=[re.compile('领取|領取|Claim', re.IGNORECASE)])
 
     def find_f_with_text(self, target_text=None):
         f = self.find_one(Labels.pick_up_f_hcenter_vcenter, box=self.f_search_box, threshold=0.8)
@@ -327,10 +340,11 @@ class BaseWWTask(BaseTask):
         return "w" if delta_y > 0 else "s"
 
     def find_treasure_icon(self):
-        return self.find_one('treasure_icon', box=self.box_of_screen(0.18, 0.1, 0.82, 0.81), threshold=0.8,
+        return self.find_one('treasure_icon', box=self.box_of_screen(0.03, 0.1, 0.97, 0.81, hcenter=True, vcenter=True),
+                             threshold=0.8,
                              target_height=720)
 
-    def click(self, x=-1, y=-1, move_back=False, name=None, interval=-1, move=True, down_time=0.01, after_sleep=0,
+    def click(self, x=-1, y=-1, move_back=False, name=None, interval=-1, move=False, down_time=0.01, after_sleep=0,
               key="left"):
         if x == -1 and y == -1:
             x = self.width_of_screen(0.5)
@@ -409,29 +423,31 @@ class BaseWWTask(BaseTask):
         self.info_set('back_up_stamina', back_up)
         return current, back_up, current + back_up
 
-    def use_stamina(self, once, must_use=0):
+    def use_stamina(self, once=60, must_use=0):
         self.sleep(1)
         current, back_up, total = self.get_stamina()
-        y = 0.62
         if current >= once * 2:
             used = once * 2
-            x = 0.67
+            use_double = True
             logger.info(f"当前体力大于等于双倍, {current} >= {once * 2}")
         elif must_use > once and total >= once * 2:
             used = once * 2
-            x = 0.67
+            use_double = True
             logger.info(f"当前加备用大于日常剩余所需, 使用双倍, {must_use} >= {once} and {total} >= {once * 2}")
         else:
             used = once
-            x = 0.32
+            use_double = False
             logger.info(f"使用单倍体力")
-        self.click(x, y, after_sleep=1)
+        if use_double:
+            btn = self.click_dialog_right_button()
+        else:
+            btn = self.click_dialog_left_button()
         if self.wait_feature('gem_add_stamina', horizontal_variance=0.4, vertical_variance=0.05,
-                             time_out=2):  # 看是否需要使用备用体力
-            self.click(0.70, 0.71, after_sleep=1)  # 点击确认
-            self.click(0.70, 0.71, after_sleep=1)
+                             time_out=2, settle_time=0.5):  # 看是否需要使用备用体力
+            self.click_relative(0.70, 0.71, hcenter=True, after_sleep=1)  # 点击确认
+            self.click_relative(0.70, 0.71, hcenter=True, after_sleep=1)
             self.back(after_sleep=1)
-            self.click(x, y, after_sleep=1)
+            self.click(btn, after_sleep=1)
 
         current -= used
         must_use -= used
@@ -509,13 +525,8 @@ class BaseWWTask(BaseTask):
             logger.info(f"handle_claim_button found a claim reward")
             return True
 
-    def handle_claim_button_now(self):
-        if self.has_claim():
-            self.sleep(0.5)
-            self.send_key('esc')
-            self.sleep(0.2)
-            logger.info(f"handle_claim_button_now found a claim reward")
-            return True
+    def has_claim_stamina(self):
+        return not self.in_team()[0] and self.find_one('claim_stamina_sign')
 
     def has_claim(self):
         return not self.in_team()[0] and self.find_one('claim_cancel_button_hcenter_vcenter', horizontal_variance=0.05,
@@ -572,7 +583,7 @@ class BaseWWTask(BaseTask):
 
     def pick_f(self, handle_claim=True):
         if self.find_one('pick_up_f_hcenter_vcenter', box=self.f_search_box, threshold=0.8):
-            self.send_key('f', after_sleep=0.8)
+            self.send_key('f', after_sleep=1)
             if not handle_claim:
                 return True
             if not self.handle_claim_button():
@@ -593,7 +604,7 @@ class BaseWWTask(BaseTask):
 
     def walk_to_treasure(self, send_f=True, raise_if_not_found=True):
         self.log_info('start walk_to_treasure')
-        if not self.walk_to_box(self.find_treasure_icon, end_condition=self.find_f_with_text):
+        if not self.walk_to_box(self.find_treasure_icon, end_condition=self.find_f_with_claim_text):
             if not self.walk_to_box(self.find_treasure_icon, end_condition=self.find_f_with_text):
                 raise Exception(f'can not walk to treasure!')
         if send_f:
@@ -668,12 +679,44 @@ class BaseWWTask(BaseTask):
         success = self.wait_until(self.in_team_and_world, time_out=time_out, raise_if_not_found=raise_if_not_found,
                                   post_action=lambda: self.back(after_sleep=2) if esc else None)
         if success:
-            self.sleep(0.1)
+            self.sleep(0.5)
         return success
+
+    def esc_world_confirm(self, send_esc=True):
+        if send_esc:
+            self.send_key('esc', after_sleep=1)
+        self.click_dialog_right_button()
+        self.wait_in_team_and_world(time_out=120)
+
+    def click_dialog_right_button(self):
+        confirm = self.find_one([
+            Labels.confirm_btn_hcenter_vcenter,
+            Labels.confirm_btn_highlight_hcenter_vcenter,
+        ])
+        if not confirm:
+            raise CannotFindException(self.tr("can't find dialog right button"))
+        self.click(confirm, after_sleep=2)
+        return confirm
+
+    def esc_cancel(self, send_esc=True):
+        if send_esc:
+            self.send_key('esc', after_sleep=1)
+        self.click_dialog_left_button()
+        self.wait_in_team_and_world(time_out=120)
+
+    def click_dialog_left_button(self) -> Box:
+        cancel = self.find_one([
+            Labels.cancel_button_hcenter_vcenter,
+            Labels.cancel_button_highlight_hcenter_vcenter,
+        ])
+        if not cancel:
+            raise CannotFindException(self.tr("can't find dialog left button"))
+        self.click(cancel, after_sleep=2)
+        return cancel
 
     def ensure_main(self, esc=True, time_out=30):
         self.info_set('current task', f'wait main esc={esc}')
-        if not self._logged_in:
+        if not self.logged_in:
             time_out = 600
         if not self.wait_until(lambda: self.is_main(esc=esc), time_out=time_out, raise_if_not_found=False):
             raise Exception('Please start in game world and in team!')
@@ -682,19 +725,23 @@ class BaseWWTask(BaseTask):
 
     def is_main(self, esc=True):
         if self.in_team_and_world():
-            self._logged_in = True
-            return True
-        if self.handle_monthly_card():
+            self.logged_in = True
+            if self.in_realm():
+                self.esc_world_confirm()
             return True
         if self.wait_login():
-            return True
+            return False
+        if self.handle_monthly_card():
+            return False
         if esc:
+            self.log_debug('main esc')
             self.back(after_sleep=2)
+            return False
 
     def wait_login(self):
-        if not self._logged_in:
+        if not self.logged_in:
             if self.in_team_and_world():
-                self._logged_in = True
+                self.logged_in = True
                 return True
             self.handle_monthly_card()
             if login_close := self.find_one('login_close', horizontal_variance=0.15, vertical_variance=0.1):
@@ -703,36 +750,48 @@ class BaseWWTask(BaseTask):
                 return False
             texts = self.ocr(log=self.debug)
 
-            if login := self.find_boxes(texts, boundary=self.box_of_screen(0.3, 0.3, 0.7, 0.7), match="登录"):
-                if not self.find_boxes(texts, boundary=self.box_of_screen(0.3, 0.3, 0.7, 0.7), match="+86"):
-                    self.click(login, after_sleep=1)
-                    self.log_info('点击登录按钮!')
+            login_box = self.box_of_screen(0.3, 0.3, 0.7, 0.7, hcenter=True, vcenter=True)
+            if login := self.find_boxes(texts,
+                                        boundary=login_box,
+                                        match=LOGIN_TEXTS):
+                if not self.find_boxes(texts, boundary=login_box, match="+86"):
+                    # the game may be auto logging in with saved credentials, wait and
+                    # confirm the login button is still there before clicking (#1356)
+                    self.sleep(LOGIN_CLICK_SETTLE_TIME)
+                    texts = self.ocr(log=self.debug)
+                    login = self.find_boxes(texts, boundary=login_box,
+                                            match=LOGIN_TEXTS)
+                    if login and not self.find_boxes(texts, boundary=login_box,
+                                                     match="+86"):
+                        self.click(login, after_sleep=1)
+                        self.log_info('点击登录按钮!')
                 return False
-            if agree := self.find_boxes(texts, boundary=self.box_of_screen(0.3, 0.3, 0.7, 0.7), match="同意"):
+            if agree := self.find_boxes(texts, boundary=login_box, match="同意"):
                 self.log_debug(f'found agree {agree}')
-                if self.find_boxes(texts, boundary=self.box_of_screen(0.3, 0.3, 0.7, 0.7), match=re.compile("隐私")):
+                if self.find_boxes(texts, boundary=login_box, match=re.compile("隐私")):
                     self.click(agree, after_sleep=1)
                     self.log_info('点击同意按钮!')
                 return False
-            if self.find_boxes(texts, match=re.compile("游戏即将重启")):
+            if self.find_boxes(texts, match=[re.compile("游戏即将重启"), re.compile('遊戲即將重啟')]):
                 self.sleep(0.2)
                 self.log_info('游戏更新成功, 游戏即将重启')
-                self.click(self.find_boxes(texts, match="确认"), after_sleep=60)
+                self.click(self.find_boxes(texts, match=["确认", "確認"]), after_sleep=60)
                 result = self.start_device()
                 self.log_info(f'start_device end {result}')
                 self.sleep(30)
                 return False
 
             if start := self.find_boxes(texts, boundary='bottom_right', match=["开始游戏", re.compile("进入游戏")]):
-                if not self.find_boxes(texts, boundary='bottom_right', match="登录"):
+                if not self.find_boxes(texts, boundary='bottom_right', match=LOGIN_TEXTS):
                     self.click(start)
                     self.log_info(f'点击开始游戏! {start}')
                     return False
-
-            if login_account := self.find_boxes(texts, match=re.compile("Windows.{0,3}Product", re.IGNORECASE)):
-                self.log_info(f'wait_login {login_account}')
-                self.click(0.5, 0.5, after_sleep=3)
-                return False
+            if switch_login := self.find_one(Labels.switch_account, vertical_variance=0.1, threshold=0.7):
+                if boxes := self.find_boxes(texts, boundary=self.box_of_screen(0.37, 0.63, 0.63, 0.99, hcenter=True,
+                                                                               vcenter=True)):
+                    self.log_info(f'wait_login {switch_login} {boxes}')
+                    self.click_relative(0.503, 0.926, hcenter=True, vcenter=True, after_sleep=3)
+                    return False
 
     def in_team_and_world(self):
         return self.in_team()[
@@ -886,7 +945,7 @@ class BaseWWTask(BaseTask):
             else:
                 exist_count += 1
         if exist_count == 2 or exist_count == 1:
-            self._logged_in = True
+            self.logged_in = True
             return True, current, exist_count + 1
         else:
             return False, -1, exist_count + 1
@@ -894,7 +953,7 @@ class BaseWWTask(BaseTask):
         # Function to check if a component forms a ring
 
     def find_monthly_card(self):
-        return self.find_one('monthly_card', threshold=0.8, horizontal_variance=0.05, vertical_variance=0.05)
+        return self.find_one('monthly_card', threshold=0.65, horizontal_variance=0.05, vertical_variance=0.05)
 
     def handle_monthly_card(self):
         monthly_card = self.find_monthly_card()
@@ -931,28 +990,52 @@ class BaseWWTask(BaseTask):
         self.send_key_up('alt')
         self.sleep(0.5)
 
-    def openF2Book(self, feature="gray_book_all_monsters", opened=False):
+    def open_boss_book(self, name, after_sleep=2):
+        self.log_info(f'open_boss_book {name}')
+        x = 0.24
+        self.sleep(0.4)
+        if name == 'ningsu':
+            y = 0.4
+        elif name == 'moni':
+            y = 0.3
+        elif name == 'qiangdi':
+            y = 0.49
+        elif name == 'wuyin':
+            y = 0.73
+        elif name == 'zhange':
+            y = 0.61
+        elif name == 'canxiang':
+            y = 0.83
+        elif name == 'mengyan':
+            self.click_relative(0.356, 0.882, after_sleep=after_sleep)
+            y = 0.86
+        else:
+            raise Exception(f'unknown_lang {name}')
+        self.click_relative(x, y, after_sleep=after_sleep, name=name)
+
+    def openF2Book(self, feature="gray_book_all_monsters"):
         if hasattr(self, 'reset_to_false'):
             self.reset_to_false('opening book')
-        if not opened:
-            self.log_info('click f2 to open the book')
-            if self.in_team_and_world():
-                self.log_info('send mouse key to open the book')
-                self.send_key_down('alt')
-                self.sleep(0.05)
-                self.click_relative(0.77, 0.05)
-                self.sleep(0.02)
-                self.send_key_up('alt')
-                self.sleep(3)
-            if self.in_team_and_world():
-                self.send_key('f2', after_sleep=3)
-                self.log_info('send f2 key to open the book failed, use f2')
-
+        self.ensure_main()
+        book_key = self.key_config.get('Guidebook Key', self.key_config.get('索拉指南', 'f2'))
+        self.log_info(f'click {book_key} to open the book')
+        if self.in_team_and_world():
+            self.send_key(book_key, after_sleep=4)
+            self.log_info(f'send {book_key} key to open')
+        if self.in_team_and_world():
+            self.log_info('send f2 key mouse key to open the book')
+            self.send_key_down('alt')
+            self.sleep(0.05)
+            self.click_relative(0.77, 0.05)
+            self.sleep(0.02)
+            self.send_key_up('alt')
+            self.sleep(4)
         gray_book_boss = self.wait_book(feature)
-        self.sleep(0.8)
         if not gray_book_boss:
             self.log_error("can't find gray_book_boss, make sure f2 is the hotkey for book", notify=True)
             raise Exception("can't find gray_book_boss, make sure f2 is the hotkey for book")
+        self.sleep(2)
+        self.click_box(gray_book_boss, after_sleep=1.5)
         return gray_book_boss
 
     def click_traval_button(self):
@@ -971,12 +1054,67 @@ class BaseWWTask(BaseTask):
                             time_out=2):
                         self.click(0.49, 0.55, after_sleep=0.5)  # 点击不再提醒
                         self.click(confirm, after_sleep=0.5)
-                        self.wait_click_feature(
-                            ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
-                            relative_x=-1, raise_if_not_found=False,
-                            threshold=0.6,
-                            time_out=1)
+                        self.click_confirm()
+                if feature.name != 'remove_custom':
+                    self.wait_click_skip_dialog_confirm()
                 return True
+
+    def click_confirm(self, timeout=1):
+        self.wait_click_feature(
+            ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
+            relative_x=-1, raise_if_not_found=False,
+            threshold=0.6,
+            time_out=1)
+
+    def click_skip_dialog_confirm(self):
+        skip_dialog_confirm = self.find_one(
+            ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
+            horizontal_variance=0.1,
+            vertical_variance=0.1,
+        )
+        if not skip_dialog_confirm:
+            return False
+
+        skip_dialog_check = self.find_one(
+            'skip_dialog_check',
+            horizontal_variance=0.1,
+            vertical_variance=0.1,
+        )
+        if not skip_dialog_check:
+            check_feature = self.get_feature_by_name('skip_dialog_check')
+            wide_check_template = cv2.resize(
+                check_feature.mat,
+                (0, 0),
+                fx=WIDE_MODE_UI_SCALE,
+                fy=WIDE_MODE_UI_SCALE,
+                interpolation=cv2.INTER_AREA,
+            )
+            skip_dialog_check = self.find_one(
+                'skip_dialog_check',
+                box=self.box_of_screen(0.35, 0.45, 0.55, 0.65),
+                template=wide_check_template,
+            )
+        if not skip_dialog_check:
+            return False
+
+        logger.info('confirm dialog exists, click confirm')
+        self.sleep(0.5)
+        self.click(skip_dialog_check)
+        self.sleep(0.5)
+        self.click(skip_dialog_confirm)
+        self.sleep(0.2)
+        return True
+
+    def wait_click_skip_dialog_confirm(self, time_out=3):
+        return self.wait_until(
+            self.click_skip_dialog_confirm,
+            time_out=time_out,
+            raise_if_not_found=False,
+        )
+
+    def click_team_challenge(self):
+        self.wait_click_feature('team_start_challenge', raise_if_not_found=True, after_sleep=1)
+        self.wait_click_skip_dialog_confirm()
 
     def wait_click_travel(self):
         self.wait_until(self.click_traval_button, raise_if_not_found=True, time_out=10)
@@ -1000,57 +1138,65 @@ class BaseWWTask(BaseTask):
                 raise Exception('must be in game world and in teams')
         return True
 
-    def click_on_book_target(self, serial_number: int, total_number: int):
-        if serial_number < 1 or serial_number > total_number:
-            raise Exception(f'Index out of range, max is {total_number}')
-        self.sleep(1)
+    def _find_book_scroll_top(self):
+        box = self.box_of_screen(0.969, 0.191, 0.978, 0.271, name="bar")
+        self.draw_boxes(boxes=box, color="blue")
+        min_width = self.width_of_screen(5 / 2560)
+        min_height = self.height_of_screen(10 / 1440)
+        boxes = find_color_rectangles(self.frame, book_bar_color, min_width, min_height, threshold=0.8, box=box)
+        if not boxes:
+            return 424 / 2160
+        bar = boxes[0]
+        self.draw_boxes(boxes=bar, color="red")
+        bar_top = bar.y / self.height
+        return bar_top
 
-        # scroll region coordinates
-        scroll_x = 3737 / 3840
-        scroll_y_top = 424 / 2160
-        scroll_y_bottom = 1899 / 2160
+    def click_on_book_target(self, serial_number: int, total_number: int, structure: list[int] = None):
+        def get_cross_count(structure, sn):
+            current_sum = 0
+            cross_count = 0
+            for s in structure:
+                current_sum += s
+                if sn > current_sum:
+                    cross_count += 1
+                else:
+                    break
+            return cross_count
 
-        visible_rows = 5
-        row_pitch = (1809 - 580) / 4 / 2160
+        self.sleep(0.5)
+        bar_bottom = 0.8806
+        bar_x = 0.9730
+        separator = 0.01
+        cross_count = 0
+        container_max_rows = 4
+        target_index = -1
 
-        # proceed button dectect region
-        top_proceed_box_y1 = 0.21
-        top_proceed_box_y2 = 0.33
-        bottom_proceed_box_y1 = 0.74
-        bottom_proceed_box_y2 = 0.88
+        bar_top = self._find_book_scroll_top()
 
-        # double drop event changes the page layout
-        min_height = self.height_of_screen(50 / 2160)
-        double = find_color_rectangles(self.frame, double_drop_color, 3, min_height,
-                                       box=self.box_of_screen(3719 / 3840, 424 / 2160, 3761 / 3840, 541 / 2160))
-        if not bool(double):
-            logger.info(f'double drop!')
-            scroll_y_top = 541 / 2160
-            visible_rows = 4
-            top_proceed_box_y1 = 0.26
-            top_proceed_box_y2 = 0.38
-
-        if serial_number <= visible_rows:
-            # the target is on the first page. no need to scroll
-            row_index = serial_number - 1
-            proceed_box_y1 = top_proceed_box_y1 + row_pitch * row_index
-            proceed_box_y2 = top_proceed_box_y2 + row_pitch * row_index
+        if serial_number <= container_max_rows:
+            target_index = serial_number - 1
         else:
-            # If scroll is required, calculate the target scrollbar y coordinate to click.
-            # We try to put the target item on the buttom.
-            target_scroll_y = scroll_y_top + serial_number * (scroll_y_bottom - scroll_y_top) / total_number
-            self.click_relative(scroll_x, target_scroll_y, after_sleep=1)
-            proceed_box_y1 = bottom_proceed_box_y1
-            proceed_box_y2 = bottom_proceed_box_y2
-
-        btns = self.find_feature('boss_proceed',
-                                 box=self.box_of_screen(0.94, proceed_box_y1, 0.97, proceed_box_y2),
-                                 threshold=0.8)
-        if not bool(btns):
+            container_h = bar_bottom - bar_top
+            if structure:
+                cross_count = get_cross_count(structure, serial_number)
+                cross_count += 1
+                container_h -= len(structure) * separator
+            item_h = container_h / total_number
+            height = item_h * serial_number
+            to_click_y = min(bar_top + height + cross_count * separator, bar_bottom)
+            self.click(bar_x, to_click_y, after_sleep=1)
+        btns = self.find_feature('boss_proceed', box=self.box_of_screen(0.9113, 0.229, 0.9613, 0.861), threshold=0.8)
+        if not btns:
             raise Exception("can't find boss_proceed")
-        btn = max(btns, key=lambda box: box.y)
-        self.click_box(btn.copy(x_offset=-btn.width * 2), after_sleep=1)
-        self.wait_feature(['fast_travel_custom', 'gray_teleport', 'remove_custom'], time_out=10, settle_time=0.5)
+        if target_index > -1:
+            target = btns[target_index]
+        else:
+            target = max(btns, key=lambda box: box.y)
+        self.draw_boxes(boxes=target, color="red")
+        self.click(target, after_sleep=1)
+        feature = self.wait_feature(['fast_travel_custom', 'gray_teleport', 'remove_custom', 'team_close'], time_out=10,
+                                    settle_time=0.5, raise_if_not_found=True)
+        return feature.name == 'team_close'
 
     def change_time_to_night(self):
         logger.info('change time to night')
@@ -1076,28 +1222,11 @@ class BaseWWTask(BaseTask):
     def jump(self, after_sleep=0.01):
         self.send_key(self.key_config.get('Jump Key'), after_sleep=after_sleep)
 
-    def go_to_tower(self):
-        self.log_info('go to tower')
-        self.ensure_main(time_out=80)
-        gray_book_weekly = self.openF2Book(Labels.gray_book_weekly)
-        if not gray_book_weekly:
-            self.log_error('go_to_tower can not find gray_book_weekly')
-            return
-        self.click_box(gray_book_weekly, after_sleep=3)
-        btn = self.find_one(Labels.boss_proceed, box=self.box_of_screen(0.91, 0.3, 0.95, 0.41), threshold=0.8)
-        if btn is None:
-            self.ensure_main(time_out=20)
-            return
-        self.click_box(btn, after_sleep=1)
-        self.wait_click_travel()
-        self.wait_in_team_and_world(time_out=120)
-        self.sleep(1)
 
-
-double_drop_color = {
-    'r': (180, 255),  # Red range
-    'g': (180, 255),  # Green range
-    'b': (180, 255)  # Blue range
+book_bar_color = {
+    "r": (190, 255),
+    "g": (190, 255),
+    "b": (190, 255),
 }
 
 echo_color = {
@@ -1162,7 +1291,7 @@ def convert_dialog_icon(cv_image):
     return output_image
 
 
-def binarize_for_matching(image):
+def binarize_for_matching(image, threshold=244):
     """
     Converts a colored image to a binary image based on a brightness threshold.
 
@@ -1184,5 +1313,5 @@ def binarize_for_matching(image):
     # Pixels > 239 will be set to 255 (white).
     # Pixels <= 239 will be set to 0 (black).
     # cv2.THRESH_BINARY is the type of thresholding we want.
-    _, binary_image = cv2.threshold(gray_image, 244, 255, cv2.THRESH_BINARY)
+    _, binary_image = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
     return binary_image

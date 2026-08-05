@@ -79,22 +79,28 @@ class CombatCheck(BaseWWTask):
         return False
 
     def check_f_break(self):
+        if self.can_break:
+            return True
+        if self.find_one(Labels.f_break_full, threshold=0.92):
+            self.logger.debug('found f_break_full')
+            self.can_break = True
+            return True
         if not self.can_break and not self._in_liberation and time.time() - self.last_break_check_time > 1:
             self.last_break_check_time = time.time()
-            if self.find_one(Labels.f_break_full, threshold=0.9):
-                self.logger.debug('found f_break_full')
-                self.can_break = True
-                return True
             if self.find_one('f_break', box=self.box_of_screen(0.2, 0.2, 0.75,
-                                                               0.8), target_height=720):
+                                                               0.8, hcenter=True, vcenter=True), target_height=720):
                 if not self.is_pick_f():
                     self.can_break = True
                     return True
 
     def f_break(self):
         if self.can_break or self.check_f_break():
-            self.send_key('f', after_sleep=0.1)
-            self.can_break = False
+            start = time.time()
+            while time.time() - start < 0.5 or (time.time() - start < 5 and (self.can_break or self.check_f_break())):
+                self.send_key('f', after_sleep=0.1)
+                self.click(after_sleep=0.1)
+                self.can_break = False
+            return True
 
     def check_count_down(self):
         count_down_area = self.box_of_screen_scaled(3840, 2160, 1820, 266, 2100,
@@ -157,6 +163,7 @@ class CombatCheck(BaseWWTask):
             return self.reset_to_false(reason='target enemy failed')
         else:
             from src.task.AutoCombatTask import AutoCombatTask
+            chars_loaded = self.load_chars()
             has_target = self.has_target()
             if not has_target and target:
                 self.log_debug('try target')
@@ -172,7 +179,7 @@ class CombatCheck(BaseWWTask):
                     return False
                 self.has_lavitator = self.find_one('edge_levitator', threshold=0.65)
                 self.log_info(f'enter combat {self.has_lavitator}')
-                self._in_combat = self.load_chars()
+                self._in_combat = chars_loaded or self.load_chars()
                 return self._in_combat
 
     def in_combat(self, target=False):
@@ -180,7 +187,7 @@ class CombatCheck(BaseWWTask):
         try:
             return self.do_check_in_combat(target)
         except Exception as e:
-            logger.error(f'do_check_in_combat: {e}')
+            logger.error(f'do_check_in_combat:', e)
         finally:
             self.in_sleep_check = False
 
@@ -249,6 +256,11 @@ class CombatCheck(BaseWWTask):
             no_name += '_169'
         return has_name, no_name
 
+    def allow_target_box_short_combat_check(self):
+        if hasattr(self, 'get_current_char') and (current_char := self.get_current_char(raise_exception=False)):
+            return getattr(current_char, 'target_box_short_combat_check', False)
+        return False
+
     def has_target(self, double_check=False):
         threshold = 0.6
         has_name, no_name = self.get_target_names()
@@ -262,6 +274,9 @@ class CombatCheck(BaseWWTask):
         if not best:
             best = self.find_best_match_in_box(self.get_box_by_name('target_box_long2'), [has_name, no_name],
                                                threshold=threshold)
+        if not best and self.allow_target_box_short_combat_check() and self.find_best_match_in_box(
+                self.get_box_by_name('target_box_short'), [has_name, no_name], threshold=threshold):
+            return True
 
         if not best:
             best = self.find_best_match_in_box(self.get_box_by_name(has_name).scale(1.1, 2.0),
@@ -311,7 +326,8 @@ class CombatCheck(BaseWWTask):
             return True
         else:
             boxes = find_color_rectangles(self.frame, boss_health_color, min_width, min_height * 1.3,
-                                          box=self.box_of_screen(1269 / 3840, 58 / 2160, 2533 / 3840, 200 / 2160))
+                                          box=self.box_of_screen(1269 / 3840, 58 / 2160, 2533 / 3840, 200 / 2160,
+                                                                 hcenter=True, vcenter=True))
             if len(boxes) == 1:
                 self.boss_health_box = boxes[0]
                 self.boss_health_box.width = 10
