@@ -5,6 +5,7 @@ from pathlib import Path
 from ok import Box, ConfigOption, Icon
 from ok.util.GlobalConfig import create_basic_options
 from src.game_launcher import get_game_launch_arguments
+from src.interaction.GamepadInteraction import GamepadInteraction
 from src.task.process_feature import process_feature
 from src.task.task_icons import task_icon
 
@@ -216,7 +217,10 @@ config = {
         'launch_arguments': get_game_launch_arguments,
         'exe': 'Client-Win64-Shipping.exe',
         'hwnd_class': 'UnrealWindow',
-        'interaction': ['PostMessage', 'Pynput'],
+        # GamepadInteraction 走 ViGEm 虚拟 Xbox360 手柄（内核 HID 报文），
+        # 是唯一能同时通过 ACE 的输入源校验 / RawInput hDevice 校验 / LL 钩子 injected 位校验的通道。
+        # 想回到原路径：把 GamepadInteraction 从这里移除，或改成 'PostMessage'。
+        'interaction': [GamepadInteraction, 'PostMessage', 'Pynput'],
         'capture_method': ['WGC', 'WGC_HDR','BitBlt_RenderFull'],  # Windows版本支持的话, 优先使用WGC, 否则使用BitBlt_Full
         'check_hdr': False,
         'force_no_hdr': False,

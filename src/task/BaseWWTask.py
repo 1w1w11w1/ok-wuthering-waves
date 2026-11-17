@@ -1,4 +1,5 @@
 import math
+import os
 import re
 import time
 from datetime import datetime, timedelta
@@ -11,6 +12,7 @@ from ok import CannotFindException
 import cv2
 
 from src.Labels import Labels
+from src.interaction.BehaviorTiming import BreakScheduler, jitter_seconds
 from src.scene.WWScene import WWScene
 
 logger = Logger.get_logger(__name__)
@@ -675,8 +677,32 @@ class BaseWWTask(BaseTask):
                 return True
         return False
 
+    BEHAVIOR_TIMING = os.environ.get('OKWW_BEHAVIOR_TIMING', '1') not in ('0', 'false', 'False')
+
     def sleep(self, timeout):
-        return super().sleep(timeout - self.check_for_monthly_card())
+        """时序扰动版 sleep。
+
+        客户端检测面已由 GamepadInteraction 绕开，但服务端行为判定仍在。
+        本仓库原本 random.* 零命中、sleep 只有 3 个常量值，操作时间轴接近周期信号。
+        这里做两件事：
+          1. 常量等待换成对数正态抖动（sigma 0.15，相对夹逼 0.75x~1.35x）
+          2. 每 40~70 分钟插一次 3~12 分钟完全空闲
+        用 OKWW_BEHAVIOR_TIMING=0 整体关闭（排查问题/跑测试时用）。
+        """
+        if not self.BEHAVIOR_TIMING:
+            return super().sleep(timeout - self.check_for_monthly_card())
+        scheduler = getattr(self, '_break_scheduler', None)
+        if scheduler is None:
+            scheduler = self._break_scheduler = BreakScheduler()
+        if scheduler.due():
+            remaining = timeout - self.check_for_monthly_card()
+            if remaining > 0:
+                super().sleep(jitter_seconds(remaining))
+            length = scheduler.break_length()
+            self.log_info(f'behavior timing: taking a break ({length / 60:.1f} min)')
+            scheduler.take_break(lambda s: super(BaseWWTask, self).sleep(s))
+            return True
+        return super().sleep(jitter_seconds(timeout - self.check_for_monthly_card()))
 
     def wait_in_team_and_world(self, time_out=10, raise_if_not_found=True, esc=False):
         success = self.wait_until(self.in_team_and_world, time_out=time_out, raise_if_not_found=raise_if_not_found,
