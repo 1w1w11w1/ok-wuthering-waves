@@ -14,7 +14,8 @@ dependencies = [
     "onnxocr-ppocrv6>=0.0.1",
     "openvino",
     "opencv-python",
-    "pyappify[standalone]>=1.0.20"
+    "pyappify[standalone]>=1.0.20",
+    "vgamepad==0.2.0"
 ]
 
 [project.optional-dependencies]

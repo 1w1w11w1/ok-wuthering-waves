@@ -161,5 +161,7 @@ urllib3==2.7.0
     # via
     #   dulwich
     #   requests
+vgamepad==0.2.0
+    # via ok-ww (pyproject.toml)
 uvicorn==0.54.0
     # via mcp
